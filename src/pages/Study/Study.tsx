@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowLeft, FaPlus, FaCheck, FaClock, FaTasks, FaFilter, FaTimes, FaEdit } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaCheck, FaClock, FaTasks, FaFilter, FaTimes } from 'react-icons/fa';
 import { studyData as initialStudyData } from '../../data/studyData';
 import type { StudyData, StudyRoadmap, StudyTask } from '../../types/study';
 import './Study.css';
