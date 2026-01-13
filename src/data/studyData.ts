@@ -1,222 +1,218 @@
-import type { StudyTask, StudyRoadmap, StudyProgress } from '../types/study';
+import type { StudyData } from '../types/study';
 
-export const studyTasks: StudyTask[] = [
-  // Frontend Development Tasks
-  {
-    id: 'html-basics',
-    title: 'HTML Fundamentals',
-    description: 'Learn the basic structure and elements of HTML',
-    labels: ['Frontend', 'Web Development'],
-    difficulty: 'beginner',
-    estimatedTime: '2 hours',
-    completed: true,
-    createdAt: new Date('2024-01-01'),
-    resources: [
-      { title: 'MDN HTML Guide', url: 'https://developer.mozilla.org/en-US/docs/Web/HTML', type: 'documentation' },
-      { title: 'HTML Crash Course', url: '#', type: 'video' }
-    ],
-    subtasks: [
-      { id: 'html-1', title: 'Learn HTML structure', completed: true },
-      { id: 'html-2', title: 'Practice with forms', completed: true },
-      { id: 'html-3', title: 'Semantic HTML elements', completed: true }
-    ]
-  },
-  {
-    id: 'css-basics',
-    title: 'CSS Fundamentals',
-    description: 'Master CSS styling, layouts, and responsive design',
-    labels: ['Frontend', 'Styling'],
-    difficulty: 'beginner',
-    estimatedTime: '4 hours',
-    completed: true,
-    createdAt: new Date('2024-01-02'),
-    prerequisites: ['html-basics'],
-    resources: [
-      { title: 'CSS Complete Guide', url: '#', type: 'article' },
-      { title: 'Flexbox Froggy', url: 'https://flexboxfroggy.com/', type: 'practice' }
-    ],
-    subtasks: [
-      { id: 'css-1', title: 'CSS Selectors and Properties', completed: true },
-      { id: 'css-2', title: 'Flexbox Layout', completed: true },
-      { id: 'css-3', title: 'CSS Grid', completed: false }
-    ]
-  },
-  {
-    id: 'js-basics',
-    title: 'JavaScript Fundamentals',
-    description: 'Learn JavaScript syntax, DOM manipulation, and ES6+ features',
-    labels: ['Frontend', 'Programming'],
-    difficulty: 'intermediate',
-    estimatedTime: '8 hours',
-    completed: false,
-    createdAt: new Date('2024-01-03'),
-    prerequisites: ['html-basics', 'css-basics'],
-    resources: [
-      { title: 'JavaScript.info', url: 'https://javascript.info/', type: 'documentation' },
-      { title: 'JS Algorithms Practice', url: '#', type: 'practice' }
-    ],
-    subtasks: [
-      { id: 'js-1', title: 'Variables and Data Types', completed: true },
-      { id: 'js-2', title: 'Functions and Scope', completed: true },
-      { id: 'js-3', title: 'DOM Manipulation', completed: false },
-      { id: 'js-4', title: 'Async JavaScript', completed: false }
-    ]
-  },
-  {
-    id: 'react-basics',
-    title: 'React Fundamentals',
-    description: 'Build interactive UIs with React components and hooks',
-    labels: ['Frontend', 'React', 'Framework'],
-    difficulty: 'intermediate',
-    estimatedTime: '12 hours',
-    completed: false,
-    createdAt: new Date('2024-01-04'),
-    prerequisites: ['js-basics'],
-    resources: [
-      { title: 'React Official Docs', url: 'https://react.dev/', type: 'documentation' },
-      { title: 'React Tutorial', url: '#', type: 'video' }
-    ],
-    subtasks: [
-      { id: 'react-1', title: 'Components and JSX', completed: false },
-      { id: 'react-2', title: 'State and Props', completed: false },
-      { id: 'react-3', title: 'Hooks (useState, useEffect)', completed: false },
-      { id: 'react-4', title: 'Event Handling', completed: false }
-    ]
-  },
-  
-  // Backend Development Tasks
-  {
-    id: 'node-basics',
-    title: 'Node.js Fundamentals',
-    description: 'Server-side JavaScript with Node.js and npm',
-    labels: ['Backend', 'JavaScript', 'Server'],
-    difficulty: 'intermediate',
-    estimatedTime: '6 hours',
-    completed: false,
-    createdAt: new Date('2024-01-05'),
-    prerequisites: ['js-basics'],
-    resources: [
-      { title: 'Node.js Guide', url: 'https://nodejs.org/en/docs/', type: 'documentation' }
-    ],
-    subtasks: [
-      { id: 'node-1', title: 'Node.js Runtime', completed: false },
-      { id: 'node-2', title: 'File System Operations', completed: false },
-      { id: 'node-3', title: 'HTTP Server', completed: false }
-    ]
-  },
-  {
-    id: 'express-basics',
-    title: 'Express.js Framework',
-    description: 'Build REST APIs with Express.js',
-    labels: ['Backend', 'API', 'Framework'],
-    difficulty: 'intermediate',
-    estimatedTime: '8 hours',
-    completed: false,
-    createdAt: new Date('2024-01-06'),
-    prerequisites: ['node-basics'],
-    resources: [
-      { title: 'Express.js Guide', url: 'https://expressjs.com/', type: 'documentation' }
-    ],
-    subtasks: [
-      { id: 'express-1', title: 'Express Setup', completed: false },
-      { id: 'express-2', title: 'Routing', completed: false },
-      { id: 'express-3', title: 'Middleware', completed: false },
-      { id: 'express-4', title: 'REST API Design', completed: false }
-    ]
-  },
-
-  // Database Tasks
-  {
-    id: 'sql-basics',
-    title: 'SQL Fundamentals',
-    description: 'Learn database queries and relational database concepts',
-    labels: ['Database', 'SQL'],
-    difficulty: 'beginner',
-    estimatedTime: '6 hours',
-    completed: false,
-    createdAt: new Date('2024-01-07'),
-    resources: [
-      { title: 'SQL Tutorial', url: '#', type: 'article' },
-      { title: 'SQLBolt Practice', url: 'https://sqlbolt.com/', type: 'practice' }
-    ],
-    subtasks: [
-      { id: 'sql-1', title: 'SELECT Queries', completed: false },
-      { id: 'sql-2', title: 'JOINs', completed: false },
-      { id: 'sql-3', title: 'Database Design', completed: false }
-    ]
-  },
-
-  // DevOps Tasks
-  {
-    id: 'git-basics',
-    title: 'Git Version Control',
-    description: 'Master Git for version control and collaboration',
-    labels: ['DevOps', 'Version Control'],
-    difficulty: 'beginner',
-    estimatedTime: '3 hours',
-    completed: true,
-    createdAt: new Date('2024-01-08'),
-    resources: [
-      { title: 'Git Handbook', url: 'https://guides.github.com/introduction/git-handbook/', type: 'documentation' }
-    ],
-    subtasks: [
-      { id: 'git-1', title: 'Basic Git Commands', completed: true },
-      { id: 'git-2', title: 'Branching and Merging', completed: true },
-      { id: 'git-3', title: 'GitHub Workflow', completed: true }
-    ]
-  }
-];
-
-export const studyRoadmaps: StudyRoadmap[] = [
-  {
-    id: 'frontend-roadmap',
-    title: 'Frontend Developer',
-    description: 'Complete roadmap to become a frontend developer',
-    category: 'Frontend',
-    totalTasks: 4,
-    completedTasks: 2,
-    estimatedWeeks: 8,
-    difficulty: 'beginner',
-    tasks: ['html-basics', 'css-basics', 'js-basics', 'react-basics'],
-    color: '#3b82f6'
-  },
-  {
-    id: 'backend-roadmap',
-    title: 'Backend Developer',
-    description: 'Learn server-side development with Node.js',
-    category: 'Backend',
-    totalTasks: 2,
-    completedTasks: 0,
-    estimatedWeeks: 6,
-    difficulty: 'intermediate',
-    tasks: ['node-basics', 'express-basics'],
-    color: '#10b981'
-  },
-  {
-    id: 'fullstack-roadmap',
-    title: 'Full Stack Developer',
-    description: 'Complete frontend and backend development path',
-    category: 'Full Stack',
-    totalTasks: 7,
-    completedTasks: 3,
-    estimatedWeeks: 16,
-    difficulty: 'advanced',
-    tasks: ['html-basics', 'css-basics', 'js-basics', 'react-basics', 'node-basics', 'express-basics', 'sql-basics'],
-    color: '#8b5cf6'
-  }
-];
-
-export const studyProgress: StudyProgress = {
-  totalTasks: studyTasks.length,
-  completedTasks: studyTasks.filter(task => task.completed).length,
-  inProgressTasks: studyTasks.filter(task => !task.completed && task.subtasks?.some(st => st.completed)).length,
-  weeklyGoal: 5,
-  currentStreak: 3,
-  longestStreak: 7,
-  labelsProgress: {
-    'Frontend': { completed: 2, total: 4 },
-    'Backend': { completed: 0, total: 2 },
-    'Database': { completed: 0, total: 1 },
-    'DevOps': { completed: 1, total: 1 }
-  }
+export const studyData: StudyData = {
+  roadmaps: [
+    {
+      id: '1',
+      title: 'Frontend Development',
+      description: 'Master modern frontend development with React, TypeScript, and advanced CSS',
+      progress: 65,
+      totalTasks: 12,
+      completedTasks: 8,
+      tasks: [
+        {
+          id: '1-1',
+          title: 'HTML5 Fundamentals',
+          description: 'Learn semantic HTML, accessibility, and modern HTML5 features',
+          completed: true,
+          labels: ['HTML', 'Fundamentals'],
+          createdAt: '2024-01-01',
+          completedAt: '2024-01-05'
+        },
+        {
+          id: '1-2',
+          title: 'CSS3 & Flexbox',
+          description: 'Master CSS3, Flexbox, Grid, and responsive design principles',
+          completed: true,
+          labels: ['CSS', 'Layout'],
+          createdAt: '2024-01-06',
+          completedAt: '2024-01-15'
+        },
+        {
+          id: '1-3',
+          title: 'JavaScript ES6+',
+          description: 'Learn modern JavaScript features, async/await, modules, and more',
+          completed: true,
+          labels: ['JavaScript', 'ES6'],
+          createdAt: '2024-01-16',
+          completedAt: '2024-02-01'
+        },
+        {
+          id: '1-4',
+          title: 'React Fundamentals',
+          description: 'Components, props, state, and lifecycle methods',
+          completed: true,
+          labels: ['React', 'Components'],
+          createdAt: '2024-02-02',
+          completedAt: '2024-02-20'
+        },
+        {
+          id: '1-5',
+          title: 'React Hooks',
+          description: 'useState, useEffect, useContext, and custom hooks',
+          completed: true,
+          labels: ['React', 'Hooks'],
+          createdAt: '2024-02-21',
+          completedAt: '2024-03-05'
+        },
+        {
+          id: '1-6',
+          title: 'TypeScript Basics',
+          description: 'Type annotations, interfaces, and TypeScript with React',
+          completed: true,
+          labels: ['TypeScript', 'Types'],
+          createdAt: '2024-03-06',
+          completedAt: '2024-03-20'
+        },
+        {
+          id: '1-7',
+          title: 'State Management',
+          description: 'Context API, Redux, and Zustand for state management',
+          completed: true,
+          labels: ['React', 'State Management'],
+          createdAt: '2024-03-21',
+          completedAt: '2024-04-05'
+        },
+        {
+          id: '1-8',
+          title: 'React Router',
+          description: 'Client-side routing, navigation, and protected routes',
+          completed: true,
+          labels: ['React', 'Routing'],
+          createdAt: '2024-04-06',
+          completedAt: '2024-04-15'
+        },
+        {
+          id: '1-9',
+          title: 'API Integration',
+          description: 'Fetch data, handle loading states, and error handling',
+          completed: false,
+          labels: ['API', 'HTTP'],
+          createdAt: '2024-04-16'
+        },
+        {
+          id: '1-10',
+          title: 'Testing with Jest',
+          description: 'Unit testing, integration testing, and React Testing Library',
+          completed: false,
+          labels: ['Testing', 'Jest'],
+          createdAt: '2024-04-20'
+        },
+        {
+          id: '1-11',
+          title: 'Performance Optimization',
+          description: 'Code splitting, lazy loading, and React optimization techniques',
+          completed: false,
+          labels: ['Performance', 'Optimization'],
+          createdAt: '2024-04-25'
+        },
+        {
+          id: '1-12',
+          title: 'Deployment & CI/CD',
+          description: 'Deploy to Vercel, Netlify, and set up continuous integration',
+          completed: false,
+          labels: ['Deployment', 'CI/CD'],
+          createdAt: '2024-05-01'
+        }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Backend Development',
+      description: 'Learn server-side development with Node.js, databases, and APIs',
+      progress: 30,
+      totalTasks: 10,
+      completedTasks: 3,
+      tasks: [
+        {
+          id: '2-1',
+          title: 'Node.js Fundamentals',
+          description: 'Learn Node.js runtime, modules, and file system operations',
+          completed: true,
+          labels: ['Node.js', 'Backend'],
+          createdAt: '2024-03-01',
+          completedAt: '2024-03-10'
+        },
+        {
+          id: '2-2',
+          title: 'Express.js Framework',
+          description: 'Build REST APIs with Express.js, middleware, and routing',
+          completed: true,
+          labels: ['Express', 'API'],
+          createdAt: '2024-03-11',
+          completedAt: '2024-03-25'
+        },
+        {
+          id: '2-3',
+          title: 'Database Design',
+          description: 'Learn SQL, database design principles, and normalization',
+          completed: true,
+          labels: ['Database', 'SQL'],
+          createdAt: '2024-03-26',
+          completedAt: '2024-04-10'
+        },
+        {
+          id: '2-4',
+          title: 'MongoDB & Mongoose',
+          description: 'NoSQL databases, document modeling, and Mongoose ODM',
+          completed: false,
+          labels: ['MongoDB', 'NoSQL'],
+          createdAt: '2024-04-11'
+        },
+        {
+          id: '2-5',
+          title: 'Authentication & Security',
+          description: 'JWT tokens, password hashing, and security best practices',
+          completed: false,
+          labels: ['Security', 'Authentication'],
+          createdAt: '2024-04-15'
+        },
+        {
+          id: '2-6',
+          title: 'API Documentation',
+          description: 'Swagger/OpenAPI, API versioning, and documentation best practices',
+          completed: false,
+          labels: ['Documentation', 'API'],
+          createdAt: '2024-04-20'
+        },
+        {
+          id: '2-7',
+          title: 'Testing Backend APIs',
+          description: 'Unit testing, integration testing, and API testing with Jest/Supertest',
+          completed: false,
+          labels: ['Testing', 'API'],
+          createdAt: '2024-04-25'
+        },
+        {
+          id: '2-8',
+          title: 'Caching Strategies',
+          description: 'Redis, in-memory caching, and cache invalidation strategies',
+          completed: false,
+          labels: ['Caching', 'Performance'],
+          createdAt: '2024-05-01'
+        },
+        {
+          id: '2-9',
+          title: 'Microservices Architecture',
+          description: 'Service decomposition, communication patterns, and orchestration',
+          completed: false,
+          labels: ['Microservices', 'Architecture'],
+          createdAt: '2024-05-05'
+        },
+        {
+          id: '2-10',
+          title: 'DevOps & Deployment',
+          description: 'Docker, containerization, and cloud deployment strategies',
+          completed: false,
+          labels: ['DevOps', 'Docker'],
+          createdAt: '2024-05-10'
+        }
+      ]
+    }
+  ],
+  availableLabels: [
+    'HTML', 'CSS', 'JavaScript', 'React', 'TypeScript', 'Node.js', 'Express',
+    'MongoDB', 'SQL', 'API', 'Testing', 'Performance', 'Security', 'DevOps',
+    'Fundamentals', 'Advanced', 'Project', 'Tutorial', 'Practice'
+  ]
 };

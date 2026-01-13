@@ -125,26 +125,6 @@ export const portfolioData: PortfolioData = {
       liveUrl: 'https://alexjohnson-portfolio.com',
       githubUrl: 'https://github.com/alexjohnson/portfolio',
       featured: false
-    },
-    {
-      id: '9',
-      title: 'Recipe Finder',
-      description: 'A recipe discovery application with advanced search filters, meal planning features, and nutritional information.',
-      image: '/images/projects/recipe-finder.jpg',
-      technologies: ['Next.js', 'TypeScript', 'Styled Components', 'Recipe API'],
-      liveUrl: 'https://recipe-finder-demo.com',
-      githubUrl: 'https://github.com/alexjohnson/recipe-finder',
-      featured: false
-    },
-    {
-      id: '10',
-      title: 'Expense Tracker',
-      description: 'A personal finance management app with budget tracking, expense categorization, and financial insights visualization.',
-      image: '/images/projects/expense-tracker.jpg',
-      technologies: ['React', 'JavaScript', 'Chart.js', 'Local Storage'],
-      liveUrl: 'https://expense-tracker-demo.com',
-      githubUrl: 'https://github.com/alexjohnson/expense-tracker',
-      featured: false
     }
   ],
   socialLinks: [

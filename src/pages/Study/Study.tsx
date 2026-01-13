@@ -1,200 +1,132 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FaArrowLeft, 
-  FaCheckCircle, 
-  FaClock, 
-  FaFire, 
-  FaBullseye, 
-  FaBook, 
-  FaExternalLinkAlt,
-  FaChevronDown,
-  FaChevronUp,
-  FaPlus,
-  FaTimes,
-  FaTag
-} from 'react-icons/fa';
-import { studyTasks, studyProgress } from '../../data/studyData';
-import type { StudyTask } from '../../types/study';
+import { FaArrowLeft, FaPlus, FaCheck, FaClock, FaTasks, FaFilter, FaTimes, FaEdit } from 'react-icons/fa';
+import { studyData as initialStudyData } from '../../data/studyData';
+import type { StudyData, StudyRoadmap, StudyTask } from '../../types/study';
 import './Study.css';
 
 const Study: React.FC = () => {
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('studyTasks');
-    return savedTasks ? JSON.parse(savedTasks) : studyTasks;
+  const [studyData, setStudyData] = useState<StudyData>(() => {
+    const saved = localStorage.getItem('studyData');
+    return saved ? JSON.parse(saved) : initialStudyData;
   });
-  const [selectedLabel, setSelectedLabel] = useState<string>('all');
-  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
-  const [progress, setProgress] = useState(() => {
-    const savedProgress = localStorage.getItem('studyProgress');
-    return savedProgress ? JSON.parse(savedProgress) : studyProgress;
-  });
-  const [showAddTask, setShowAddTask] = useState(false);
+  
+  const [selectedRoadmap, setSelectedRoadmap] = useState<string | null>(null);
+  const [filterLabel, setFilterLabel] = useState<string>('');
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    labels: [] as string[],
-    difficulty: 'beginner' as 'beginner' | 'intermediate' | 'advanced',
-    estimatedTime: ''
-  });
-  const [newLabel, setNewLabel] = useState('');
-
-  // Get all unique labels from tasks
-  const allLabels: string[] = Array.from(new Set(tasks.flatMap((task: StudyTask) => task.labels)));
-  const labels: string[] = ['all', ...allLabels];
-
-  const filteredTasks = tasks.filter((task: StudyTask) => {
-    return selectedLabel === 'all' || task.labels.includes(selectedLabel);
+    labels: [] as string[]
   });
 
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks((prevTasks: StudyTask[]) => {
-      const newTasks = prevTasks.map((task: StudyTask) => 
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      );
-      localStorage.setItem('studyTasks', JSON.stringify(newTasks));
-      return newTasks;
-    });
-    updateProgress();
-  };
+  // Save to localStorage whenever studyData changes
+  useEffect(() => {
+    localStorage.setItem('studyData', JSON.stringify(studyData));
+  }, [studyData]);
 
-  const toggleSubtaskCompletion = (taskId: string, subtaskId: string) => {
-    setTasks((prevTasks: StudyTask[]) => {
-      const newTasks = prevTasks.map((task: StudyTask) => 
-        task.id === taskId 
-          ? {
-              ...task,
-              subtasks: task.subtasks?.map(subtask =>
-                subtask.id === subtaskId 
-                  ? { ...subtask, completed: !subtask.completed }
-                  : subtask
-              )
-            }
-          : task
-      );
-      localStorage.setItem('studyTasks', JSON.stringify(newTasks));
-      return newTasks;
-    });
-    updateProgress();
-  };
-
-  const toggleTaskExpansion = (taskId: string) => {
-    setExpandedTasks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(taskId)) {
-        newSet.delete(taskId);
-      } else {
-        newSet.add(taskId);
-      }
-      return newSet;
-    });
-  };
-
-  const updateProgress = () => {
-    const completedTasks = tasks.filter((task: StudyTask) => task.completed).length;
-    const inProgressTasks = tasks.filter((task: StudyTask) => 
-      !task.completed && task.subtasks?.some(st => st.completed)
-    ).length;
-
-    const labelsProgress: { [key: string]: { completed: number; total: number } } = {};
-    allLabels.forEach((label: string) => {
-      const labelTasks = tasks.filter((task: StudyTask) => task.labels.includes(label));
-      labelsProgress[label] = {
-        completed: labelTasks.filter((task: StudyTask) => task.completed).length,
-        total: labelTasks.length
-      };
-    });
-
-    const newProgress = {
-      ...progress,
+  const updateRoadmapProgress = (roadmap: StudyRoadmap): StudyRoadmap => {
+    const completedTasks = roadmap.tasks.filter(task => task.completed).length;
+    const totalTasks = roadmap.tasks.length;
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    return {
+      ...roadmap,
       completedTasks,
-      inProgressTasks,
-      labelsProgress
+      totalTasks,
+      progress
+    };
+  };
+
+  const toggleTaskCompletion = (roadmapId: string, taskId: string) => {
+    setStudyData(prev => ({
+      ...prev,
+      roadmaps: prev.roadmaps.map(roadmap => {
+        if (roadmap.id === roadmapId) {
+          const updatedRoadmap = {
+            ...roadmap,
+            tasks: roadmap.tasks.map(task => {
+              if (task.id === taskId) {
+                return {
+                  ...task,
+                  completed: !task.completed,
+                  completedAt: !task.completed ? new Date().toISOString() : undefined
+                };
+              }
+              return task;
+            })
+          };
+          return updateRoadmapProgress(updatedRoadmap);
+        }
+        return roadmap;
+      })
+    }));
+  };
+
+  const addNewTask = () => {
+    if (!newTask.title.trim() || !selectedRoadmap) return;
+
+    const taskId = `${selectedRoadmap}-${Date.now()}`;
+    const task: StudyTask = {
+      id: taskId,
+      title: newTask.title,
+      description: newTask.description,
+      completed: false,
+      labels: newTask.labels,
+      createdAt: new Date().toISOString()
     };
 
-    setProgress(newProgress);
-    localStorage.setItem('studyProgress', JSON.stringify(newProgress));
+    setStudyData(prev => ({
+      ...prev,
+      roadmaps: prev.roadmaps.map(roadmap => {
+        if (roadmap.id === selectedRoadmap) {
+          const updatedRoadmap = {
+            ...roadmap,
+            tasks: [...roadmap.tasks, task]
+          };
+          return updateRoadmapProgress(updatedRoadmap);
+        }
+        return roadmap;
+      }),
+      availableLabels: [...new Set([...prev.availableLabels, ...newTask.labels])]
+    }));
+
+    setNewTask({ title: '', description: '', labels: [] });
+    setShowAddTaskModal(false);
   };
 
-  const getTaskProgress = (task: StudyTask) => {
-    if (!task.subtasks) return task.completed ? 100 : 0;
-    const completedSubtasks = task.subtasks.filter(st => st.completed).length;
-    return Math.round((completedSubtasks / task.subtasks.length) * 100);
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return '#10b981';
-      case 'intermediate': return '#f59e0b';
-      case 'advanced': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
-
-  const addLabelToNewTask = (label: string) => {
-    if (label && !newTask.labels.includes(label)) {
+  const addLabelToTask = (label: string) => {
+    if (!newTask.labels.includes(label)) {
       setNewTask(prev => ({
         ...prev,
         labels: [...prev.labels, label]
       }));
     }
-    setNewLabel('');
   };
 
-  const removeLabelFromNewTask = (labelToRemove: string) => {
+  const removeLabelFromTask = (label: string) => {
     setNewTask(prev => ({
       ...prev,
-      labels: prev.labels.filter(label => label !== labelToRemove)
+      labels: prev.labels.filter(l => l !== label)
     }));
   };
 
-  const handleAddTask = () => {
-    if (!newTask.title.trim() || !newTask.description.trim()) return;
-
-    const task: StudyTask = {
-      id: `task-${Date.now()}`,
-      title: newTask.title.trim(),
-      description: newTask.description.trim(),
-      labels: newTask.labels,
-      difficulty: newTask.difficulty,
-      estimatedTime: newTask.estimatedTime || '1 hour',
-      completed: false,
-      createdAt: new Date(),
-      subtasks: []
-    };
-
-    setTasks((prevTasks: StudyTask[]) => {
-      const newTasks = [...prevTasks, task];
-      localStorage.setItem('studyTasks', JSON.stringify(newTasks));
-      return newTasks;
-    });
-
-    // Reset form
-    setNewTask({
-      title: '',
-      description: '',
-      labels: [],
-      difficulty: 'beginner',
-      estimatedTime: ''
-    });
-    setShowAddTask(false);
-    updateProgress();
+  const addNewLabel = (label: string) => {
+    if (label.trim() && !studyData.availableLabels.includes(label)) {
+      setStudyData(prev => ({
+        ...prev,
+        availableLabels: [...prev.availableLabels, label]
+      }));
+      addLabelToTask(label);
+    }
   };
 
-  const cancelAddTask = () => {
-    setNewTask({
-      title: '',
-      description: '',
-      labels: [],
-      difficulty: 'beginner',
-      estimatedTime: ''
-    });
-    setShowAddTask(false);
+  const getFilteredTasks = (tasks: StudyTask[]) => {
+    if (!filterLabel) return tasks;
+    return tasks.filter(task => task.labels.includes(filterLabel));
   };
 
-  useEffect(() => {
-    updateProgress();
-  }, [tasks]);
+  const selectedRoadmapData = studyData.roadmaps.find(r => r.id === selectedRoadmap);
 
   return (
     <div className="study-page">
@@ -204,207 +136,233 @@ const Study: React.FC = () => {
             <FaArrowLeft />
             Back to Projects
           </Link>
-          <h1 className="page-title">Study Roadmap</h1>
+          <h1 className="page-title">Study Roadmap Tracker</h1>
           <p className="page-description">
-            Track your learning progress with structured roadmaps and tasks
+            Track your learning progress with organized roadmaps and tasks
           </p>
         </div>
 
-        {/* Progress Overview */}
-        <div className="progress-overview">
-          <div className="progress-card">
-            <div className="progress-icon">
-              <FaBullseye />
-            </div>
-            <div className="progress-info">
-              <h3>Overall Progress</h3>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${(progress.completedTasks / progress.totalTasks) * 100}%` }}
-                ></div>
+        <div className="study-content">
+          {!selectedRoadmap ? (
+            <div className="roadmaps-overview">
+              <div className="overview-stats">
+                <div className="stat-card">
+                  <FaTasks className="stat-icon" />
+                  <div className="stat-info">
+                    <span className="stat-number">
+                      {studyData.roadmaps.reduce((acc, r) => acc + r.totalTasks, 0)}
+                    </span>
+                    <span className="stat-label">Total Tasks</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <FaCheck className="stat-icon completed" />
+                  <div className="stat-info">
+                    <span className="stat-number">
+                      {studyData.roadmaps.reduce((acc, r) => acc + r.completedTasks, 0)}
+                    </span>
+                    <span className="stat-label">Completed</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <FaClock className="stat-icon pending" />
+                  <div className="stat-info">
+                    <span className="stat-number">
+                      {studyData.roadmaps.reduce((acc, r) => acc + (r.totalTasks - r.completedTasks), 0)}
+                    </span>
+                    <span className="stat-label">Pending</span>
+                  </div>
+                </div>
               </div>
-              <span>{progress.completedTasks} / {progress.totalTasks} tasks completed</span>
-            </div>
-          </div>
 
-          <div className="progress-card">
-            <div className="progress-icon">
-              <FaFire />
+              <div className="roadmaps-grid">
+                {studyData.roadmaps.map(roadmap => (
+                  <div key={roadmap.id} className="roadmap-card" onClick={() => setSelectedRoadmap(roadmap.id)}>
+                    <div className="roadmap-header">
+                      <h3 className="roadmap-title">{roadmap.title}</h3>
+                      <div className="progress-circle">
+                        <span className="progress-text">{roadmap.progress}%</span>
+                      </div>
+                    </div>
+                    <p className="roadmap-description">{roadmap.description}</p>
+                    <div className="roadmap-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ width: `${roadmap.progress}%` }}
+                        ></div>
+                      </div>
+                      <span className="progress-stats">
+                        {roadmap.completedTasks} / {roadmap.totalTasks} tasks completed
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="progress-info">
-              <h3>Current Streak</h3>
-              <div className="streak-number">{progress.currentStreak}</div>
-              <span>days in a row</span>
-            </div>
-          </div>
+          ) : (
+            <div className="roadmap-detail">
+              <div className="roadmap-detail-header">
+                <button 
+                  className="back-button"
+                  onClick={() => setSelectedRoadmap(null)}
+                >
+                  <FaArrowLeft />
+                  Back to Roadmaps
+                </button>
+                <div className="roadmap-info">
+                  <h2 className="roadmap-title">{selectedRoadmapData?.title}</h2>
+                  <p className="roadmap-description">{selectedRoadmapData?.description}</p>
+                </div>
+                <div className="roadmap-actions">
+                  <button 
+                    className="add-task-button"
+                    onClick={() => setShowAddTaskModal(true)}
+                  >
+                    <FaPlus />
+                    Add Task
+                  </button>
+                </div>
+              </div>
 
-          <div className="progress-card">
-            <div className="progress-icon">
-              <FaClock />
-            </div>
-            <div className="progress-info">
-              <h3>In Progress</h3>
-              <div className="streak-number">{progress.inProgressTasks}</div>
-              <span>tasks started</span>
-            </div>
-          </div>
+              <div className="tasks-section">
+                <div className="tasks-header">
+                  <div className="filter-section">
+                    <FaFilter className="filter-icon" />
+                    <select 
+                      value={filterLabel} 
+                      onChange={(e) => setFilterLabel(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="">All Labels</option>
+                      {studyData.availableLabels.map(label => (
+                        <option key={label} value={label}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-          <div className="progress-card">
-            <div className="progress-icon">
-              <FaBook />
+                <div className="tasks-list">
+                  {selectedRoadmapData && getFilteredTasks(selectedRoadmapData.tasks).map(task => (
+                    <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+                      <div className="task-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={() => toggleTaskCompletion(selectedRoadmap, task.id)}
+                        />
+                      </div>
+                      <div className="task-content">
+                        <h4 className="task-title">{task.title}</h4>
+                        <p className="task-description">{task.description}</p>
+                        <div className="task-labels">
+                          {task.labels.map(label => (
+                            <span key={label} className="task-label">{label}</span>
+                          ))}
+                        </div>
+                        <div className="task-meta">
+                          <span className="task-date">
+                            Created: {new Date(task.createdAt).toLocaleDateString()}
+                          </span>
+                          {task.completedAt && (
+                            <span className="task-date">
+                              Completed: {new Date(task.completedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="progress-info">
-              <h3>Weekly Goal</h3>
-              <div className="streak-number">{progress.weeklyGoal}</div>
-              <span>tasks per week</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter and Add Task */}
-        <div className="controls-section">
-          <div className="filter-group">
-            <label>Filter by Label:</label>
-            <select 
-              value={selectedLabel} 
-              onChange={(e) => setSelectedLabel(e.target.value)}
-            >
-              {labels.map((label: string) => (
-                <option key={label} value={label}>
-                  {label === 'all' ? 'All Labels' : label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button 
-            className="add-task-button"
-            onClick={() => setShowAddTask(true)}
-          >
-            <FaPlus />
-            Add New Task
-          </button>
+          )}
         </div>
 
         {/* Add Task Modal */}
-        {showAddTask && (
-          <div className="modal-overlay">
-            <div className="add-task-modal">
+        {showAddTaskModal && (
+          <div className="modal-overlay" onClick={() => setShowAddTaskModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>Add New Task</h3>
-                <button className="close-button" onClick={cancelAddTask}>
+                <button 
+                  className="modal-close"
+                  onClick={() => setShowAddTaskModal(false)}
+                >
                   <FaTimes />
                 </button>
               </div>
-              
-              <div className="modal-content">
+              <div className="modal-body">
                 <div className="form-group">
-                  <label>Title *</label>
+                  <label>Task Title</label>
                   <input
                     type="text"
                     value={newTask.title}
                     onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Enter task title"
+                    placeholder="Enter task title..."
                   />
                 </div>
-
                 <div className="form-group">
-                  <label>Description *</label>
+                  <label>Description</label>
                   <textarea
                     value={newTask.description}
                     onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter task description"
+                    placeholder="Enter task description..."
                     rows={3}
                   />
                 </div>
-
                 <div className="form-group">
                   <label>Labels</label>
-                  <div className="labels-input">
-                    <input
-                      type="text"
-                      value={newLabel}
-                      onChange={(e) => setNewLabel(e.target.value)}
-                      placeholder="Add a label"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addLabelToNewTask(newLabel);
-                        }
-                      }}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => addLabelToNewTask(newLabel)}
-                      disabled={!newLabel.trim()}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="existing-labels">
-                    <span>Quick add:</span>
-                    {allLabels.map((label: string) => (
-                      <button
-                        key={label}
-                        type="button"
-                        className="label-quick-add"
-                        onClick={() => addLabelToNewTask(label)}
-                        disabled={newTask.labels.includes(label)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="selected-labels">
-                    {newTask.labels.map((label: string) => (
-                      <span key={label} className="selected-label">
-                        <FaTag />
-                        {label}
-                        <button onClick={() => removeLabelFromNewTask(label)}>
-                          <FaTimes />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Difficulty</label>
-                    <select
-                      value={newTask.difficulty}
-                      onChange={(e) => setNewTask(prev => ({ 
-                        ...prev, 
-                        difficulty: e.target.value as 'beginner' | 'intermediate' | 'advanced'
-                      }))}
-                    >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Estimated Time</label>
-                    <input
-                      type="text"
-                      value={newTask.estimatedTime}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                      placeholder="e.g., 2 hours"
-                    />
+                  <div className="labels-section">
+                    <div className="selected-labels">
+                      {newTask.labels.map(label => (
+                        <span key={label} className="selected-label">
+                          {label}
+                          <button onClick={() => removeLabelFromTask(label)}>
+                            <FaTimes />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="available-labels">
+                      {studyData.availableLabels
+                        .filter(label => !newTask.labels.includes(label))
+                        .map(label => (
+                          <button
+                            key={label}
+                            className="label-button"
+                            onClick={() => addLabelToTask(label)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                    </div>
+                    <div className="add-label">
+                      <input
+                        type="text"
+                        placeholder="Add new label..."
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            addNewLabel(e.currentTarget.value);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="modal-actions">
-                <button className="cancel-button" onClick={cancelAddTask}>
+              <div className="modal-footer">
+                <button 
+                  className="button secondary"
+                  onClick={() => setShowAddTaskModal(false)}
+                >
                   Cancel
                 </button>
                 <button 
-                  className="add-button"
-                  onClick={handleAddTask}
-                  disabled={!newTask.title.trim() || !newTask.description.trim()}
+                  className="button primary"
+                  onClick={addNewTask}
+                  disabled={!newTask.title.trim()}
                 >
                   Add Task
                 </button>
@@ -412,133 +370,6 @@ const Study: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Tasks List */}
-        <div className="tasks-section">
-          <h2>Tasks ({filteredTasks.length})</h2>
-          <div className="tasks-list">
-            {filteredTasks.map((task: StudyTask) => (
-              <div key={task.id} className={`task-card ${task.completed ? 'completed' : ''}`}>
-                <div className="task-header">
-                  <div className="task-main">
-                    <button
-                      className={`task-checkbox ${task.completed ? 'checked' : ''}`}
-                      onClick={() => toggleTaskCompletion(task.id)}
-                    >
-                      {task.completed && <FaCheckCircle />}
-                    </button>
-                    <div className="task-info">
-                      <h3>{task.title}</h3>
-                      <p>{task.description}</p>
-                      <div className="task-meta">
-                        <div className="task-labels">
-                          {task.labels.map((label: string) => (
-                            <span key={label} className="task-label">
-                              <FaTag />
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                        <span 
-                          className="task-difficulty"
-                          style={{ backgroundColor: getDifficultyColor(task.difficulty) }}
-                        >
-                          {task.difficulty}
-                        </span>
-                        <span className="task-time">
-                          <FaClock /> {task.estimatedTime}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="task-actions">
-                    <div 
-                      className="task-progress-circle"
-                      style={{
-                        background: `conic-gradient(var(--color-primary) ${getTaskProgress(task) * 3.6}deg, var(--color-border) 0deg)`
-                      }}
-                    >
-                      <span>{getTaskProgress(task)}%</span>
-                    </div>
-                    {task.subtasks && (
-                      <button
-                        className="expand-button"
-                        onClick={() => toggleTaskExpansion(task.id)}
-                      >
-                        {expandedTasks.has(task.id) ? <FaChevronUp /> : <FaChevronDown />}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {expandedTasks.has(task.id) && (
-                  <div className="task-details">
-                    {task.prerequisites && task.prerequisites.length > 0 && (
-                      <div className="prerequisites">
-                        <h4>Prerequisites:</h4>
-                        <div className="prerequisite-tags">
-                          {task.prerequisites.map((prereq: string) => {
-                            const prereqTask = tasks.find((t: StudyTask) => t.id === prereq);
-                            return (
-                              <span 
-                                key={prereq} 
-                                className={`prerequisite-tag ${prereqTask?.completed ? 'completed' : ''}`}
-                              >
-                                {prereqTask?.title || prereq}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {task.subtasks && (
-                      <div className="subtasks">
-                        <h4>Subtasks:</h4>
-                        <div className="subtasks-list">
-                          {task.subtasks.map(subtask => (
-                            <div key={subtask.id} className="subtask">
-                              <button
-                                className={`subtask-checkbox ${subtask.completed ? 'checked' : ''}`}
-                                onClick={() => toggleSubtaskCompletion(task.id, subtask.id)}
-                              >
-                                {subtask.completed && <FaCheckCircle />}
-                              </button>
-                              <span className={subtask.completed ? 'completed' : ''}>
-                                {subtask.title}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {task.resources && (
-                      <div className="resources">
-                        <h4>Resources:</h4>
-                        <div className="resources-list">
-                          {task.resources.map((resource, index: number) => (
-                            <a
-                              key={index}
-                              href={resource.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="resource-link"
-                            >
-                              <FaExternalLinkAlt />
-                              <span>{resource.title}</span>
-                              <span className="resource-type">{resource.type}</span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

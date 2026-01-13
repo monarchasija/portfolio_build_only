@@ -29,27 +29,9 @@ const TicTacToe: React.FC = () => {
     return null;
   };
 
-  const isBoardFull = (board: Board): boolean => {
-    return board.every(cell => cell !== null);
+  const checkDraw = (board: Board): boolean => {
+    return board.every(cell => cell !== null) && !checkWinner(board);
   };
-
-  useEffect(() => {
-    const gameWinner = checkWinner(board);
-    if (gameWinner) {
-      setWinner(gameWinner);
-      setGameOver(true);
-      setScores(prev => ({
-        ...prev,
-        [gameWinner]: prev[gameWinner] + 1
-      }));
-    } else if (isBoardFull(board)) {
-      setGameOver(true);
-      setScores(prev => ({
-        ...prev,
-        draws: prev.draws + 1
-      }));
-    }
-  }, [board]);
 
   const handleCellClick = (index: number) => {
     if (board[index] || gameOver) return;
@@ -57,7 +39,26 @@ const TicTacToe: React.FC = () => {
     const newBoard = [...board];
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
-    setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+
+    const gameWinner = checkWinner(newBoard);
+    const isDraw = checkDraw(newBoard);
+
+    if (gameWinner) {
+      setWinner(gameWinner);
+      setGameOver(true);
+      setScores(prev => ({
+        ...prev,
+        [gameWinner]: prev[gameWinner] + 1
+      }));
+    } else if (isDraw) {
+      setGameOver(true);
+      setScores(prev => ({
+        ...prev,
+        draws: prev.draws + 1
+      }));
+    } else {
+      setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+    }
   };
 
   const resetGame = () => {
@@ -72,19 +73,11 @@ const TicTacToe: React.FC = () => {
     resetGame();
   };
 
-  const getWinningCells = (): number[] => {
-    if (!winner) return [];
-    
-    for (const combination of winningCombinations) {
-      const [a, b, c] = combination;
-      if (board[a] === winner && board[b] === winner && board[c] === winner) {
-        return combination;
-      }
-    }
-    return [];
+  const getGameStatus = () => {
+    if (winner) return `Player ${winner} Wins!`;
+    if (gameOver) return "It's a Draw!";
+    return `Player ${currentPlayer}'s Turn`;
   };
-
-  const winningCells = getWinningCells();
 
   return (
     <div className="tic-tac-toe-page">
@@ -96,7 +89,7 @@ const TicTacToe: React.FC = () => {
           </Link>
           <h1 className="game-title">Tic-Tac-Toe</h1>
           <p className="game-description">
-            Classic Tic-Tac-Toe game built with React and TypeScript
+            Classic Tic-Tac-Toe game for two players. Get three in a row to win!
           </p>
         </div>
 
@@ -117,33 +110,19 @@ const TicTacToe: React.FC = () => {
           </div>
 
           <div className="game-status">
-            {gameOver ? (
-              winner ? (
-                <div className="winner-announcement">
-                  <FaTrophy className="trophy-icon" />
-                  <span>Player {winner} Wins!</span>
-                </div>
-              ) : (
-                <span>It's a Draw!</span>
-              )
-            ) : (
-              <span>Current Player: <strong>{currentPlayer}</strong></span>
-            )}
+            {(winner || gameOver) && <FaTrophy className="trophy-icon" />}
+            <span className="status-text">{getGameStatus()}</span>
           </div>
 
           <div className="game-board">
             {board.map((cell, index) => (
               <button
                 key={index}
-                className={`game-cell ${cell ? 'filled' : ''} ${
-                  winningCells.includes(index) ? 'winning-cell' : ''
-                }`}
+                className={`game-cell ${cell ? 'filled' : ''} ${cell === 'X' ? 'x-cell' : cell === 'O' ? 'o-cell' : ''}`}
                 onClick={() => handleCellClick(index)}
                 disabled={gameOver || cell !== null}
               >
-                <span className={`cell-content ${cell === 'X' ? 'player-x' : 'player-o'}`}>
-                  {cell}
-                </span>
+                {cell}
               </button>
             ))}
           </div>
